@@ -1,0 +1,482 @@
+\documentclass[12pt]{article}
+
+\title{rudiss.cls for \LaTeX Rutgers theses and dissertations}
+
+\author{Jason Turner}
+
+\usepackage[colorlinks=true, linkcolor=blue]{hyperref}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Overview}
+
+The rudiss.cls file is a documentclass file created for Rutgers University thesis 
+and dissertations by Les Clowney in 1994, based on the ruthesis.sty package 
+made by Dave Steiner and Tara Madhyastha. Some minor modifications, as 
+well as this documentation, have been made by Jason Turner in 2008. 
+The `class' itself is actually a driver for the report documentclass, and will 
+pass on any options (font size, etc.) not specific to the rudiss.cls package. It 
+is loaded in the documentclass declaration, as 
+\begin{verbatim}\documentclass{rudiss}\end{verbatim}
+The `class' itself is actually a driver for the \verb=report= documentclass, and will 
+pass on any options (font size, etc.) not specific to the rudiss.cls package. 
+Proper margins, spacing (with the exception of the bibliography --- see 
+section \ref{bibsection} below), etc., are handled by the document class, so there is no reason 
+to call extra packages such as geometry to handle them. 
+
+\section{Parts of the Dissertation}
+
+As of Spring 2008, the Rutgers University (thesis and) dissertation format guide \\
+(\href{http://rci.rutgers.edu/~routledg/styleguide.htm}{http://rci.rutgers.edu/$\sim$routledg/styleguide.htm}) made provisions for the following items in the dissertation: 
+
+\subsection{Copyright page}
+
+This ``[m]ust be included if statutory copyright in the dissertation has been 
+or will be claimed.'' If you need one of these, enter the option 
+\begin{verbatim}
+\copyrightpage
+\end{verbatim}
+in the preamble.
+
+\subsection{Title page (mandatory)}
+
+The title page includes a number of items, each of which are set in the 
+document preamble:
+
+\subsubsection*{Title}
+
+The title of the thesis or dissertation. Syntax:
+
+\bigskip
+
+\noindent\verb=\title{=\emph{thesis/dissertation title}\verb=}=
+
+\subsection*{Author}
+
+\verb=\author{=\emph{author's name}\verb=}=. Notice that Rutgers requires that you use your \emph{full 
+given name}, as it appears in the Rutgers' registrar's records. 
+
+\subsection*{Degree sought}
+
+By default, this is set to Master of Science. You can set it to Master of Arts or Doctor of Philosophy with the \verb=\ma= or \verb=\phd= options, respectively.
+
+There are essentially two things affected by these commands: one is the name of the degree sought, and the other is the type of document submitted (thesis or dissertation). The former can be set independently of the \verb=\ma= or \verb=\phd= commands by use of the \verb=\degree{=\emph{degree name}\verb=}= option. For instance, if for some reason you were submitting a dissertation as part of a candidacy for a Juris Doctor (doctor of law), you could use the \verb=\phd= command to set the type of document to \emph{dissertation}, and then include the command \verb=\degree{Juris Doctor}= to get the title page to come out right.
+
+\subsection*{Program in which the degree is sought}
+\verb=\program{=\emph{program name}\verb=}=.
+
+\subsection*{Thesis/dissertation director}
+\verb=\director{=\emph{director's name}\verb=}=.
+
+\subsection*{Blank lines for signatures}
+For the Ph.D. you need at least four of these (three in-program signatures 
+and one from your outside-of-the-program committee member); for the masters, at least three. This is set 
+by \verb=\approvals{=\#\verb=}=, where \# is the number of signatures you need. 
+
+\subsection*{Submission month and year}
+In format ``Month, yyyy'' --- \emph{not} ``mm/yy''. Set by \verb=\submissionmonth{=\emph{month}\verb=}= and \verb=\submissionyear{={\emph{year}\verb=}==, respectively. 
+These should be the month and year when you receive the degree, not 
+when you defend. 
+
+\subsection{Abstract (mandatory)}
+
+Your dissertation must have a 350(-ish) word abstract. The text of the abstract is entered 
+inside of a command, \verb=\abstract=, as follows: 
+
+\bigskip
+
+\noindent\verb=\abstract{=\emph{the text of the abstract goes here}\verb=}= 
+
+\bigskip
+
+It can be very useful to embed \verb=\input= commands inside of these environments, in order to pull the body of your text from somewhere else. (I do this 
+even for my chapters.) For instance, you can save the text of the abstract in 
+a file abstract.tex, and then include 
+\begin{verbatim}
+\abstract{\input{abstract.tex}} 
+\end{verbatim}
+This way you can keep the main source file that puts the pieces together into 
+the dissertation separate from the actual nitty-gritty content, which you can 
+deal with in separate files.
+
+\subsection{Preface, acknowledgements, and dedication}
+
+These are all optional, but the syntax for these pages is just like that for the 
+abstract, with commands \verb=\preface{=\emph{preface text}\verb=}=, \verb=\acknowledgements{=\emph{ac\-knowledge\-ments text}\verb=}=, and \verb=\dedication{=\emph{dedication text}\verb=}=. Notice the `alternative' spelling of acknowledgements --- don't add forget the extra `e', or \LaTeX won't recognize the command.
+
+\subsection{Table of contents}
+
+This is generated automatically.
+
+\subsection{Lists of figures and/or tables}
+
+If you use figures or tables in your dissertation, you can generate a page listing 
+these with the commands \verb=\figurespage= and \verb=tablespage= in the preamble. 
+In order for this to work properly, figures and tables in the body of the 
+dissertation must be inserted using the \verb=figure= and \verb=table= environments, 
+and must be given captions. 
+
+\subsection{Producing the front matter}
+
+The front matter is produced with the \verb=\frontmatter= command. This should be the first command after \verb=\begin{document}=.
+
+\subsection{Chapters}
+
+Chapters, sections, subsections, etc., are handled in any book or report class document, with the \verb=\chapter=, 
+\verb=\section=, \verb=\subsection=, etc. commands. Note that sub-subsections are not given a counter.
+
+\subsection{Appendices}
+
+These are also done as in other documentclasses: the \verb=\appendix= command in 
+the body resets the \verb=\thechapter= counter and begins displaying the counter 
+as its alphabetical counterpart (`A', `B', etc.) 
+This works perfectly well, with one exception. If you want just a 
+single appendix, the default behavior makes its title appear as `Appendix A' 
+in the table of contents and chapter heading. But the \verb=\chapter*= command 
+ruins the subsection numbering scheme --- subsections get numbered as `.1', 
+`.1.1', `.2' instead of (say) `A.1', `A.1.1', `A.2', etc.\ --- and the appendix will not appear in the table of contents.
+
+The \verb=\oneappendix= command, declared in the preamble, will make the appendix chapter heading and table-of-contens line appear without the `A', but keep the subsections numbered with the `A.1', `A.1.1', `A.2', etc.\ scheme. (The `A' stands for \emph{appendix}.) Note that it should \emph{only} be used if there is just one appendix.
+
+\subsection{Bibliography}
+\label{bibsection}
+
+To date, the rudiss class has two problems with bibtex's \verb=\bibliography=
+command. The first is that it does not successfully single-space the bibliography (one of Rutgers' style requirements), and the second is that it does 
+not place the bibliography in the table of contents. 
+
+The former of these can be gotten around with the setspace package, 
+and the second can be gotten around by inserting a specific table of contents 
+marker right before the bibliography. That is, add \verb=\include{setspace}= to 
+your preamble, and where you want the bibliography to appear, use: 
+
+\bigskip
+
+\noindent\verb=\newpage=\\
+\verb=\singlespacing=\\
+\verb=\addtocontentsline{toc}{chapter}{Bibliography}=\\
+\verb=\bibliography{=\textbf{bibfile.bib}\verb=}=
+
+The only drawback to this work-around is that, when using the \verb=hyperref =
+package, the link anchor tends to show up at the wrong page. (The table of 
+contents, however, gets the page right, and that is what matters most.) 
+Note that, except for the bibliography, rudiss handles spacing exactly 
+as it should. So --- since the bibliography shows up towards the end --- there 
+should be no need to call any of setspace's commands any earlier in the 
+document. (Once you do use it to set the spacing to single, it can stay that 
+way: the vita, to be discussed next, is also supposed to be single spaced.) 
+
+
+\subsection{Vita (mandatory for Ph.\ D.)}
+
+For the masters thesis, the vita is optional; for the dissertation, it’s required. 
+The vita consists of three parts: education, ‘work’ experience, and publica- 
+tions, in that order and each listed in reverse chronological order. 
+The vita is handled by the vita environment, which appropriately single- 
+spaces the vita, starting a new page with the proper heading and placing 
+it in the table of contents. Each subsection of the vita is handled with 
+the descriptionlist environment. For instance, if \verb=\author= is set to Jane 
+Quincy Doe, then the following code: 
+
+\begin{verbatim}
+\begin{vita} 
+% Colleges attended, with dates, subjects, degrees 
+\begin{descriptionlist}{xxxxx} 
+\item[2004] M.\ A.\ in Philosophy, University of Somewhere 
+\item[2000] B. A.\ in English, Somewhere Else College 
+\end{descriptionlist} 
+\medskip
+\begin{descriptionlist}{xxxxx--xxxxx} 
+%positions held since BS degree 
+\item[2008--2005] Teaching assistant, Philosophy, Rutgers 
+University 
+\item[2004--2005] University fellow, of Philosophy, Rutgers 
+University 
+\end{descriptionlist} 
+\medskip 
+%publications 
+\begin{descriptionlist}{xxxxx} 
+\item[2005a] ‘‘The Best Paper Ever,’’ \emph{Mind} 99.9: 1--100. 
+\item[2005b] ‘‘The Next-to-Best Paper Ever,’’ \emph{Journal of 
+Philosophy} 88.8: 2--200. 
+\item[2004] ‘‘Don’t Bother,’’ \emph{The Philosophical Review} 
+77.7: 3--300. 
+\end{descriptionlist} 
+\end{vita} 
+\end{verbatim}
+produces the following vita (shrunk to fit):
+\begin{quote}\begin{tabular}{|c|}
+\hline
+\begin{minipage}{\linewidth}
+
+\bigskip
+
+\center
+{\large \bfseries Vita}
+
+\medskip
+
+{\normalsize \bfseries Jane Quincy Doe}
+
+\footnotesize
+
+\medskip
+
+\begin{description}
+\item[2004] M.\ A.\ in Philosophy, University of Somewhere 
+\item[2000] B. A.\ in English, Somewhere Else College 
+\end{description}
+
+\smallskip
+\begin{description}
+
+\item[2008--2005] Teaching assistant, Philosophy, Rutgers 
+University 
+\item[2004--2005] University fellow, of Philosophy, Rutgers 
+University 
+\end{description}
+
+\smallskip
+\begin{description}
+\item[2005a] ``The Best Paper Ever,'' \emph{Mind} 99.9: 1--100. 
+\item[2005b] ``The Next-to-Best Paper Ever,'' \emph{Journal of 
+Philosophy} 88.8: 2--200. 
+\item[2004{\ \ }] ``Don't Bother,'' \emph{The Philosophical Review} 
+77.7: 3--300. 
+\end{description}
+\smallskip
+\end{minipage}\\
+\hline
+\end{tabular}\end{quote}
+
+\section{Formatting}
+
+As of Spring 2008, the Rutgers University dissertation format guide \\
+(\href{http://rci.rutgers.edu/~routledg/styleguide.htm}{http://rci.rutgers.edu/$\sim$routledg/styleguide.htm}) insisted on the following 
+style requirements: 
+
+\subsection{Page size and margins}
+
+The paper needs to be $8\frac{1}{2}'' \times 11''$, with one inch margins all around except 
+for on the left, where the margins must be $1\frac{1}{2}$ inches. This is all taken care 
+of automatically by the rudiss class; there is no need to pass any special 
+options or call any special packages (e.g., geometry) get this part right. 
+
+\subsection{Typeface}
+
+``hoose an easy-to-read type. Use one typeface throughout; script or italic 
+typefaces are not acceptable for the main text (10-12 pitch).'' 
+Changing the font pitch (size) is done as with other \LaTeX document 
+classes --- by passing an option to the class in the class declaration. (E.g., for 
+12 point font, begin the document with \verb=\documentclass[12pt]{rudiss}=.) 
+Other fonts can be used as per usual by calling various font packages (times, 
+palatino, etc.) 
+
+\subsection{Line spacing}
+
+There are very particular rules about line spacing for various sorts of environments: 
+
+\subsubsection*{Body Text}
+
+The text of the body should be double-spaced. This is done automatically 
+by \verb=rudiss=. 
+
+\subsubsection*{Quotations}
+
+Quotations are to be single-spaced, indented on the left margin but flush on 
+the right. The \verb=rudiss= class reformats the \verb=quotation= environment to meet 
+these requirements. The \verb=quote= environment, however, is left unchanged: 
+blocks of text embedded in a \verb=quote= environment will remain double-spaced and be indented both on the left and the right. So \verb=quotation= should be used 
+for block quotes.
+
+The default behavior of the \verb=quotation= environment is to indent the first line of each quoted paragraph and leave no space between embedded paragraphs. This behavior can be changed with the \verb= \quotenoindent= command in the preamble; if it is invoked, paragraphs inside the \verb=quotation= environment are never indented but one lineskip is left between multiple quoted paragraphs.
+
+\subsubsection*{Verse}
+
+Verse quotations are to be single-spaced and centered; this is handled by 
+the \verb=verse= environment. However the 
+implementation is flawed: the environment insists on a hanging-indent for 
+the first line of the block, and if a \verb=\begin{verse}= environment is declared without a blank line between it and preceding text, the preceding text will be single-spaced.
+
+\subsubsection*{Footnotes and endnotes}
+
+The \href{http://rci.rutgers.edu/~routledg/styleguide.htm}{format guide} has the following to say about footnotes and endnotes: 
+\begin{quote}
+Footnotes at the bottom page, endnotes at the ends of chapters 
+or at the end of manuscript. Number notes consecutively. When 
+notes are at the end of chapters, each chapter's notes should begin 
+with the number one (1). Be consistent throughout and conform 
+to generally accepted practice in the discipline. Footnotes and 
+endnotes should be single-spaced.
+\end{quote}
+
+The default setting is to reset the footnote counter at each new chapter. 
+To number footnotes continuously through the text, include the command 
+\verb=\continuousfn= in the preamble. You must have the \verb=remreset= package installed on your system and in your \LaTeX compiler's path.
+
+The current version of \verb=rudiss= has support only for footnotes. (The 
+\verb=endnote= package could be used for endnotes, but the the resetting of the 
+counters, production of multiple endnote pages at the end of chapters (if 
+desired), and other work would be needed to bring the endnotes into typographical conformity with the dissertation guidelines. 
+
+\subsection{Pagination}
+
+The body of the text begins on the first page of the first chapter. The body 
+begins with page 1, and pages are enumerated with arabic numerals in the 
+upper-right-hand corner of the page. ($1''$ from right-hand side of the page 
+and $\frac{1}{2}''$ from the top.) The front matter begins with the title page, and the 
+pages are enumerated with lowercase roman numerals in the center of the 
+page, $\frac{1}{2}''$ from the bottom. (Except that no page number appears on the title 
+page.) Pagination is handled automatically by \verb=rudiss=. 
+
+\section{Other commands}
+
+\subsection{Drafts}
+
+The \verb=\draft= command in the preamble compiles the dissertation in `draft'
+mode: instead of the signature lines, etc., on the title page, the text ``Draft 
+of [date]'' is produced. And a header consisting of the dissertation 
+title and date of draft is produced at the top of each page thereafter. Very 
+helpful for keeping track of what was written when. 
+
+\subsection{Joint degrees}
+
+If the degree is being offered joint with Rutgers University and some other institution, the command \verb=\joint{=\emph{institution}\verb=}= in the preamble will insert the relevant information on the title page. Since the joint degree is commonly offered only in connection with the University of Medicine and Dentistry of New Jersey, there is a shortcut command that can be used instead: \verb=\jointumdnj=. 
+
+\section{Dissertations and hyperref}
+
+The \verb=hyperref= package is not strictly necessary for producing a dissertation 
+in \LaTeX. But the Rutgers University Library stores all dissertations electronically (and does not store them as hard copies) as .pdfs; since the .pdf 
+you compile will eventually be the `official' copy of your dissertation, there 
+is some reason to make it as nice as possible. And the \verb=hyperref= package, 
+while usually thought of as a package for placing links within .pdf documents, also gives you a lot of control over other features of your .pdf. This section 
+presents some of those features and how to implement them. 
+
+This document gives only a brief overview of the package and some of its 
+features most relevant to the dissertation. For a full description of the package, see the documentation at\\ \href{http://www.tug.org/applications/hyperref/manual.html}{http://www.tug.org/applications/hyperref/manual.html}. All of the features discussed below are accessed by passing the option to the \verb=\hyperref= package when called; i.e., by including \verb+\usepackage[+\emph{option 1}\verb+, +\emph{option 2}\verb+, +\emph{option 3}\verb+, +\ldots\verb+]{hyperref}+ in the preamble.
+
+\subsection{Links}
+
+\verb=hyperref= automatically creates links in the .pdf from items in the table of 
+contents, list of figures, etc. to the specified pages, bibtext \verb=\cite= commands 
+(and their natbib counterparts) to bibliography entries, and foot/endnote 
+keys to the notes themselves. Also, if you use \LaTeX's \verb=\label= and \verb=\ref=
+function, hyperref automatically links the text produced by the \verb=\ref= command to its corresponding label. Other in-document links can be produced 
+with other commands; see package documentation for further 
+details. 
+
+Unfortunately, \verb=hyperref= also automatically produces links in one of three 
+ways: by coloring the linked text (as in this document, achieved with the 
+\verb+\colorlinks=true+ option), by drawing squares around the linked text (default mode), or by smallcapping linked text (with the \verb+\frenchlinks=true+
+option). 
+
+None of these are acceptable for the Rutgers dissertation. But there is 
+a workaround: the \verb=pdfborder= option adjusts the thickness of the borders of 
+the squares around the links. You can set this border to zero by including 
+the option 
+\begin{verbatim}
+pdfborder={0 0 0} 
+\end{verbatim}
+when calling the \verb=hyperref= package. \emph{Viola} --- the links look like the rest of the document. 
+
+\subsection{Pagination}Chapter one of your dissertation begins on page 1. All of the front matter, 
+coming before that, is paginated with lowercase roman numerals. One upshot of this is that, for instance, page 17 of your dissertation is not the 17th page of 
+your .pdf document: it’'s the$17 + n$-th, where $n$ is the number of front-matter 
+pages you have. 
+This makes skimming through the .pdf in Acrobat rather tiresome; if a 
+reader is looking for a passage on page 82, they have to figure out how many 
+front-matter pages there are, add that to 82, and then jump to the resulting 
+page number. But hyperref can make your readers' lives easier: passing the options 
+\begin{verbatim}                                                                     
+plainpages=false, pdfpagelabels=true 
+\end{verbatim}
+makes Acrobat, in the page-number window, display the same page number 
+as is on the page itself. E.g., Acrobat will display ``iii (3 of 212)'' (or whatever) 
+instead of just displaying ``3'' and leaving your reader confused. 
+
+\verb+hyperref+ can also set the document title, author, subject, and keyword fields 
+(found in Reader’s `File $\rightarrow$
+Property' window). These are done by passing the options 
+
+\bigskip
+
+\noindent \verb+\pdfauthor={+\emph{author}\verb+}+ \\
+\verb+\pdftitle={+\emph{title}\verb+}+ \\
+\verb+\pdfsubject={+\emph{title}\verb+}+ \\
+\verb+\pdfkeywords={+\emph{keyword1, keyword2, \ldots}\verb+}+ 
+
+\bigskip
+
+\noindent to the package in the preamble. 
+
+\newpage
+
+\section{Table of commands}
+\footnotesize
+\begin{tabular}{|l|p{4.5cm}|p{4.5cm}|}
+\hline
+\textbf{Command} & \textbf{Use} & \textbf{Description}\\
+\hline
+\verb=\copyrightpage= & declared in preamble & produces copyright page in the front matter.\\
+\hline
+\verb+\title{+\ldots\verb+}+ & declared in preamble & sets title of document\\
+\hline
+\verb+\author{+\ldots\verb+}+ & declared in preamble & sets author of document\\
+\hline
+\verb+\ma+ & declared in preamble & for masters' theses\\
+\hline
+\verb+\phd+ & declared in preamble & for doctoral dissertations\\
+\hline
+\verb+\degree{+\ldots\verb+}+ & declared in preamble & sets degree sought; generally not needed\\
+\hline
+\verb+\program{+\ldots\verb+}+ & declared in preamble & sets program in which degree is sought\\
+\hline
+\verb+\director{+\ldots\verb+}+ & declared in preamble & sets director's name\\
+\hline
+\verb+\approvals{+\ldots\verb+}+ & declared in preamble & sets the number of blank lines for signatures\\
+\hline
+\verb+\submissionmonth{+\ldots\verb+}+ & declared in preamble & sets month of degree\\
+\hline
+\verb+\submissionyear{+\ldots\verb+}+ & declared in preamble & sets year of degree\\
+\hline
+\verb+\abstract{+\ldots\verb+}+ & declared in preamble & sets text of the abstract\\
+\hline
+\verb+\preface{+\ldots\verb+}+ & declared in preamble & sets text of the preface\\
+\hline
+\verb+\acknowledgements{+\ldots\verb+}+ & declared in preamble & sets text of the acknowledgements\\
+\hline
+\verb+\dedication{+\ldots\verb+}+ & declared in preamble & sets text of the dedication\\
+\hline
+\verb+\figurespage+ & declared in preamble & produces a list of figures\\
+\hline
+\verb+\tablespage+ & declared in preamble & produces a list of tables\\
+\hline
+\verb+\continuousfn+ & declared in preamble & do not reset footnote counter at chapter\\
+\hline
+\verb+\frontmatter+ & first line of document & produces the front matter\\
+\hline
+\verb+\oneappendix+ & declared in preamble & reqmoves `A' from appendix title for one-appendix documents.\\
+\hline
+\verb+vita+ & \verb=\begin{vita}=\ldots & environment for the vita \ \\ 
+& \verb+\end{vita}+ &  \\
+\hline
+\verb+descriptionlist+ & \verb=\begin{descriptionlist}= & list environment for vita;\\
+
+& \verb={xxxxxx}=\ldots & embedded within \verb=vita=\\
+
+& \verb+\end{de+\verb+script+\verb+ionlist}+ &  environment \\
+\hline 
+\verb+\quotenoindent+ & declared in preamble & removes indent from first line of \verb+quotation+-environment paragraphs; places lineskip between these paragraphs\\
+\hline
+\verb+\draft+ & declared in preamble & produces draft version of document\\
+\hline
+\verb+\joint{+\ldots\verb+}+ & declared in preamble & add institution for joint degree \\
+\hline
+\verb+\jointumdnj+ & declared in preamble & for joint degree with UMDNJ \\
+\hline
+\end{tabular}
+
+
+\end{document}

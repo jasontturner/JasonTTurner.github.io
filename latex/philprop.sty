@@ -1,0 +1,488 @@
+%% philprop.sty -- LaTeX2e package for typesetting set-aside propositions
+
+%% identification
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{philprop}[2008/02/20 -- jason turner]
+
+%% initial code
+
+\usepackage{ifthen}
+\usepackage{keyval}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% new counters for prop environment
+
+\newcounter{propositions}
+\setcounter{propositions}{0}
+\newcounter{allprops}
+\setcounter{allprops}{0}
+
+
+%% new lengths for prop environment
+
+\newlength{\proptopsep}%
+\newlength{\proppartopsep}%
+\newlength{\propitemsep}%
+\newlength{\propparsep}%
+\newlength{\propleftmargin}%
+\newlength{\proprightmargin}%
+\newlength{\propparindent}%
+\newlength{\propitemindent}%
+\newlength{\proplabelsep}%
+\newlength{\proplabelwidth}%
+
+%% new lengths for adjusting label size in \longprop commands
+
+\newlength{\@propstoragea}%
+\newlength{\@propstorageb}%
+\newlength{\@thislabelwidth}%
+\newlength{\@propitemwidthoffset}%
+
+%% default lengths for prop environment 
+%% (defaults to those for list environments generally)
+
+\setlength{\proptopsep}{\topsep}%
+\setlength{\proppartopsep}{\partopsep}%
+\setlength{\propitemsep}{\itemsep}%
+\setlength{\propparsep}{\parsep}%
+\setlength{\propleftmargin}{\leftmargin}%
+\setlength{\proprightmargin}{\rightmargin}%
+\setlength{\propparindent}{\listparindent}%
+\setlength{\propitemindent}{\itemindent}%
+\setlength{\proplabelsep}{\labelsep}%
+\setlength{\proplabelwidth}{\labelwidth}%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% macros for assigning proposition keys various values %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%% macro set 1: flagging keys as being used %%%%
+
+%% \@setpropkeystatus{...} creates a new command:
+%% \@propkeystatusrelayout... as a macro for "used"
+%% \setpropkeyused: robust command mask for \@setpropkeystatus
+%% \propkeycheck{...} returns "used" iff ... is used.
+
+\def\@setpropkeystatus#1{%
+	\expandafter\gdef\csname @propkeystatusrelayout#1\endcsname{used}}
+\newcommand{\setpropkeyused}[1]{\@setpropkeystatus{#1}}
+\def\propkeycheck#1{\csname @propkeystatusrelayout#1\endcsname}
+
+%% macros to send package warning if user 
+%% attempts to define a key twice.
+
+\newboolean{propositionkeysmuliplydefined}
+\setboolean{propositionkeysmuliplydefined}{false}
+
+%% tell LaTeX to send a package warning at line where
+%% user attempts to define a key for a second time
+
+\newcommand{\sendwarningifpropkeyused}[1]{\ifthenelse{ %
+	\equal{\propkeycheck{#1}}{used}}%
+	{\PackageWarning{philprop}{Key #1 multiply defined}%
+	\setboolean{propositionkeysmuliplydefined}{true}}%
+	{\relax}%
+}
+
+%% tell LaTeX to give a generic package warning 
+%% at the end of the document if user multiply defines keys
+
+\AtEndDocument{\ifthenelse{\boolean{propositionkeysmuliplydefined}}
+	{\PackageWarningNoLine{philprop}{Keys were multiply defined; may affect proposition cross-references.}}
+	{\relax}
+}
+
+%%%% macro set 2: flagging key as being for a \primeitem %%%%
+
+%% new command: \@setprimerelay{...}{__} creates a new 
+%% command \@primerelayout...  with value "___".
+%% new command: \@primereport{...} returns value "___" as  
+%% set by \@setprimerelay{...}
+
+\def\@setprimerelay#1#2{%
+  \expandafter\gdef\csname @primerelayout#1\endcsname{#2}%
+}
+\def\@primereport#1{\csname @primerelayout#1\endcsname}
+
+%%%% macro set 3: assigning label to key for items %%%%
+
+%% new command: \@setpropositionrelay{...}{___} creates a
+%% new command \@propositionsrelayout... with value "___".
+%% new command: \@propositionsrelay{...} that returns the
+%% value of \@propositionsrelayout...
+%% new command: \nref{...}, robust mask for \@propositionsrelay.
+%% new command: \@setpropositionnamekey{...}{___}: invokes
+%% \@setpropositionrelay and sends warning if key {...} has
+%% already been defined.
+\def\@setpropositionsrelay#1#2{%
+  \expandafter\gdef\csname @propositionsrelayout#1\endcsname{#2}%
+}
+\def\@propositionsrelay#1{\csname @propositionsrelayout#1\endcsname}
+\newcommand{\nref}[1]{\@propositionsrelay{#1}}
+\def\@setpropositionnamekey#1#2{%
+	\sendwarningifpropkeyused{#1}%
+	\@setpropositionsrelay{#1}{#2}%
+}
+
+%%%% macro set 4: assign proposition content to keys %%%%
+%%%% (for use with \$prop commands).                 %%%%
+
+%% new command: \@setpropositioncontentrelay{...}{___};
+%% creates a new command \@propositioncontentrelayout... with
+%% "___" as value.
+%% new command: \@propositioncontentrelay{...}, returns value
+%% for "..." set by \@setpropositioncontentrelay{...}{___}.
+%% new command: \contentref{...}, robust mask for 
+%% \@propostioncontentrelay{...}
+%% new command: \@setpropositioncontentkey{...}{___}; mask for
+%% \@setpropositioncontentrelay{...}{___}
+
+\def\@setpropositioncontentrelay#1#2{%
+  \expandafter\gdef\csname @propositioncontentrelayout#1\endcsname{#2}%
+}
+\def\@propositioncontentrelay#1{\csname @propositioncontentrelayout#1\endcsname}
+\newcommand{\contentref}[1]{\@propositioncontentrelay{#1}}
+\def\@setpropositioncontentkey#1#2{%
+	\@setpropositioncontentrelay{#1}{#2}%
+}
+
+%%%% macro set 5: assigns "named" or "numbered" to keys %%%%
+
+%% new command: \@setpropositionskeytypeback{...}{___}:
+%% defines new command \@propositionskeytypeout... with
+%% value "___".
+%% new command: \@propositionskeytype{...}; returns "___"
+%% set for "..." by \@setpropositionskeytypeback.
+%% new command: \checkkeytype, robust mask 
+%% for \@propositionskeytype
+%% new command: \@setpropositionkeytype, mask for
+%% \@setpropositionskeytypeback
+
+\def\@setpropositionskeytypeback#1#2{%
+  \expandafter\gdef\csname @propositionskeytypeout#1\endcsname{#2}%
+}
+\def\@propositionskeytype#1{\csname @propositionskeytypeout#1\endcsname}
+\newcommand{\checkkeytype}[1]{\@propositionskeytype{#1}}
+\def\@setpropositionkeytype#1#2{%
+	\@setpropositionskeytypeback{#1}{#2}%
+}
+
+%% new command: \ifthenelsekeytype{1}{2}{3}{4}: checks whether
+%% #1 is named or numbered, run macro in #2 if named,
+%% run macro in #3 if numbered, and run macro in #4 if 
+%% key #1 has not yet been defined.
+
+\newcommand{\ifthenelsekeytype}[4]{\ifthenelse{
+	\equal{\checkkeytype{#1}}{named}}
+	{#2}%
+	{\ifthenelse{ %
+		\equal{\checkkeytype{#1}}{numbered}}%
+		{#3}%
+		{#4}%
+	}%
+}
+
+%% new variables to store style of label braces, with
+%% default values "(", ")" for all types
+
+\def\@leftpitembrace{(}
+\def\@rightpitembrace{)}
+\def\@leftpitembraceout{(}
+\def\@rightpitembraceout{)}
+\def\@leftnitembrace{(}
+\def\@rightnitembrace{)}
+\def\@leftnitembraceout{(}
+\def\@rightnitembraceout{)}
+
+%% macros for user to re-assign these variables
+
+\newcommand{\pitembraceset}[2]{\def\@leftpitembrace{#1} \def\@rightpitembrace{#2}}
+\newcommand{\pitembraceoutset}[2]{\def\@leftpitembraceout{#1} \def\@rightpitembraceout{#2}}
+\newcommand{\nitembraceset}[2]{\def\@leftnitembrace{#1} \def\@rightnitembrace{#2}}
+\newcommand{\nitembraceoutset}[2]{\def\@leftnitembraceout{#1} \def\@rightnitembraceout{#2}}
+
+%% check for the existence of jobname.prp and read it in
+%% if it exists
+
+\newread\proprefauxin
+\openin\proprefauxin\jobname.prp\relax
+\ifeof\proprefauxin
+	\closein\proprefauxin
+		\AtEndDocument{\PackageWarningNoLine{philprop}{File \jobname.prp not found; re-run to get philprop references right.}}
+	\else
+	\closein\proprefauxin
+		\input{\jobname.prp}
+\fi	
+
+%% open channel for writing to jobname.prp aux file
+
+\newwrite\proprefauxfile
+\openout\proprefauxfile=\jobname.prp
+\immediate\write\proprefauxfile{\relax}
+
+%%%% create prop environment %%%
+
+\newenvironment{prop}{%
+%% step counter propositions by default; display counter with
+%% proper braces on each side
+\begin{list}{\@leftpitembrace\arabic{propositions}\@rightpitembrace}
+{\usecounter{propositions}%
+%% assign prop lengths to list environment
+\setlength{\topsep}{\proptopsep}%
+\setlength{\partopsep}{\proppartopsep}%
+\setlength{\itemsep}{\propitemsep}%
+\setlength{\leftmargin}{\propleftmargin}%
+\setlength{\rightmargin}{\proprightmargin}%
+\setlength{\listparindent}{\propparindent}%
+\setlength{\itemindent}{\propitemindent}%
+\setlength{\labelsep}{\proplabelsep}%
+\setlength{\labelwidth}{\proplabelwidth}%
+\setlength{\parsep}{\propparsep}%
+}
+%% set the local environment counter to the global allprops
+\setcounter{propositions}{\value{allprops}}
+}
+%% ending environment, set the global counter to what has been
+%% added during the local environment
+{\setcounter{allprops}{\value{propositions}}
+\end{list}}
+
+%%%% create special item commands for prop environment %%%%
+
+%% \pitem: numbered item, uses counter
+\newcommand{\pitem}[1]{%
+	%% set key type to numbered; copy to aux file
+	\@setpropositionkeytype{#1}{numbered} %
+	\write\proprefauxfile{\protect\@setpropositionkeytype{#1}{numbered}
+	\protect\@setprimerelay{#1}{naked}} %
+	%% set key as used (don't copy to aux file, or will produce warning when no warning is wanted
+	\setpropkeyused{#1}%
+	%% set as not prime; copy to aux file
+	\@setprimerelay{#1}{naked} %
+	\write\proprefauxfile{\protect\@setprimerelay{#1}{naked}}
+	%% produce item; add label to counter
+	\item\label{#1} }
+
+%% \nitem: named item
+\newcommand{\nitem}[2]{%
+	%% write key info to aux file
+	\write\proprefauxfile{ 
+	\protect\@setpropositionnamekey{#1}{#2}%
+	\protect\@setpropositionkeytype{#1}{named}} % 
+	%% set key info in document
+	\@setpropositionnamekey{#1}{#2}%
+	\@setpropositionkeytype{#1}{named} %
+	%% set key as used
+	\setpropkeyused{#1}%
+	%% produce item with proper label and braces
+	\item[\@leftnitembrace#2\@rightnitembrace]}
+
+%% \qitem: "quiet", unlabelled item
+\newcommand{\qitem}{\item[\ ] }
+
+%% \refitem: produce item labeled from previous key
+\newcommand{\refitem}[1]{%
+\ifthenelsekeytype{#1}%
+	{\item[\@leftnitembrace\nref{#1}\@rightnitembrace]}%
+	{\ifthenelse{\equal{\@primereport{#1}}{prime}}
+	{\item[\@leftpitembrace\nref{#1}\@rightpitembrace]}
+	{\item[\@leftpitembrace\ref{#1}\@rightpitembrace]}
+	}%
+	{\item[(??)] }}
+	
+%% \primeitem: produce prime item from used item; default
+%% prime mark "$^{\prime}$".
+
+\newcommand{\primeitem}[3][$^{\prime}$]{
+\ifthenelsekeytype{#2}%
+%% what do to if old key is named:
+	%% write key info to aux file
+	{\write\proprefauxfile{ %
+	\protect\@setpropositionnamekey{#3}{\nref{#2}#1}%
+	\protect\@setpropositionkeytype{#3}{named}} % 
+	%% set key info in document
+	\@setpropositionnamekey{#3}{\nref{#2}#1} %
+	\@setpropositionkeytype{#3}{named} %
+	%% set key as used
+	\setpropkeyused{#3}%
+	%% produce item
+	\item[\@leftnitembrace\nref{#2}#1\@rightnitembrace]}%
+%% what to do if old key is numbered:
+	{\ifthenelse{\equal{\@primereport{#2}}{prime}}%
+	%% what to do if old key is prime:
+		%% write key info in aux file
+		{\write\proprefauxfile{\protect\@setpropositionnamekey{#3}{\nref{#2}#1}%
+		\protect\@setpropositionkeytype{#3}{numbered} %
+		\protect\@setprimerelay{#3}{prime}}%
+		%% set key info in document
+		\@setpropositionnamekey{#3}{\nref{#2}#1}%
+		\@setpropositionkeytype{#3}{numbered} %
+		%%  set key as prime
+		\@setprimerelay{#3}{prime}%
+		%% set key as used
+		\setpropkeyused{#3}%
+		%% produce item
+		\item[\@leftpitembrace\nref{#2}#1\@rightpitembrace]}
+	% what to do if oldkey is not prime
+		%% set key info in document
+		{\write\proprefauxfile{\protect\@setpropositionnamekey{#3}{\ref{#2}#1}%
+		\protect\@setpropositionkeytype{#3}{numbered} %
+		\protect\@setprimerelay{#3}{prime}}%
+		%% set key info in document
+		\@setpropositionnamekey{#3}{\ref{#2}#1} %
+		\@setpropositionkeytype{#3}{numbered} %
+		%% set key as prime
+		\@setprimerelay{#3}{prime}%
+		%% set key as used
+		\setpropkeyused{#3}% 
+		%% produce item
+		\item[\@leftpitembrace\ref{#2}#1\@rightpitembrace]}}%
+%% what to do if old key is undefined:
+	%% produce item with "(??)" label
+	{\item[(??)] }
+}
+
+%%%% commands for propositions outside prop environment
+
+%% \pprop: numbered proposition
+
+\newcommand{\pprop}[2]{%
+\begin{prop}
+%% set key content in aux file
+\write\proprefauxfile{\protect\@setpropositioncontentkey{#1}{#2}}
+%% set key content in document
+\@setpropositioncontentkey{#1}{#2}%
+%% produce item
+\pitem{#1}#2\end{prop}}
+
+%% \nprop: named proposition
+
+\newcommand{\nprop}[3]{%
+\begin{prop}
+%% set key content in aux file
+\write\proprefauxfile{\protect\@setpropositioncontentkey{#1}{#3}} % 
+%% set key content in document
+\protect\@setpropositioncontentkey{#1}{#3}%
+%% produce item 
+\nitem{#1}{#2}#3\end{prop}}
+
+%% \refprop: proposition with label from earlier key
+
+\newcommand{\refprop}[2]{%
+\begin{prop}
+%% set key content in aux file (dummy, for parity)
+\write\proprefauxfile{\protect\relax} % 
+%% produce item
+\refitem{#1}#2\end{prop}}
+
+%% \fullrefprop: reproduce earlier output of \_prop command
+
+\newcommand{\fullrefprop}[1]{%
+\begin{prop}
+%% set key content in aux file (dummy, for parity)
+\write\proprefauxfile{\protect\relax} %
+%% produce item
+\refitem{#1} \contentref{#1}\end{prop}}
+
+%% \primeprop: produce prime item
+
+\newcommand{\primeprop}[4][$^{\prime}$]{%
+\begin{prop}
+%% write content to aux file
+\write\proprefauxfile{\protect\@setpropositioncontentkey{#3}{#4}} % 
+%% write content to document
+\@setpropositioncontentkey{#3}{#4}% 
+%% produce item
+\primeitem[#1]{#2}{#3}#4\end{prop}}
+
+%% \longprop: named proposition with variable label width
+
+\newcommand{\longprop}[4][0em]{%
+%% store \proplabelwidth-->\@propstoragea for later
+\setlength{\@propstoragea}{\proplabelwidth}%
+%% set offset to user-defined (optional) value
+\settowidth{\@propitemwidthoffset}{#1}%
+%% store \propleftmargin-->\@propstorageb for later
+\setlength{\@propstorageb}{\propleftmargin}%
+%% set lengths for this invocation of prop environment
+\settowidth{\@thislabelwidth}{\@leftnitembrace#3\@rightnitembrace}%
+\addtolength{\proplabelwidth}{\@thislabelwidth}%
+\setlength{\propleftmargin}{\@thislabelwidth}%
+\addtolength{\propleftmargin}{\propitemsep}
+\addtolength{\propleftmargin}{#1}
+\begin{prop}
+%% set key content in aux file
+\write\proprefauxfile{\protect\@setpropositioncontentkey{#2}{#4}} % %% set key content in document
+\protect\@setpropositioncontentkey{#2}{#4}% 
+%% produce item
+\nitem{#2}{#3}#4\end{prop}%
+%% return \proplabelwidth and \propleftmargin to old values
+\setlength{\proplabelwidth}{\@propstoragea}%
+\setlength{\propleftmargin}{\@propstorageb}}
+
+%% \longpropref: like \refprop but with variable label width
+
+\newcommand{\longpropref}[3][0pt]{%
+%% store \proplabelwidth-->\@propstoragea for later
+\setlength{\@propstoragea}{\proplabelwidth}%
+%% set offset to user-defined (optional) value
+\settowidth{\@propitemwidthoffset}{#1}%
+%% store \propleftmargin-->\@propstorageb for later
+\setlength{\@propstorageb}{\propleftmargin}%
+%% set lengths for this invocation of prop environment
+\settowidth{\@thislabelwidth}{\@leftnitembrace\nref{#2}\@rightnitembrace}%
+\addtolength{\proplabelwidth}{\@thislabelwidth}%
+\setlength{\propleftmargin}{\@thislabelwidth}%
+\addtolength{\propleftmargin}{\propitemsep}
+\addtolength{\propleftmargin}{#1}
+\begin{prop}
+%% write content to aux file (dummy for parity)
+\write\proprefauxfile{\relax} %
+%% produce item
+\refitem{#2}#3\end{prop}%
+%% return \proplabelwidth and \propleftmargin to old values
+\setlength{\proplabelwidth}{\@propstoragea}%
+\setlength{\propleftmargin}{\@propstorageb}}
+
+%% \longpropfullref: like \fullrefprop but with variable label width
+
+\newcommand{\longpropfullref}[2][0pt]{%
+%% store \proplabelwidth-->\@propstoragea for later
+\setlength{\@propstoragea}{\proplabelwidth}%
+%% set offset to user-defined (optional) value
+\settowidth{\@propitemwidthoffset}{#1}%
+%% store \propleftmargin-->\@propstorageb for later
+\setlength{\@propstorageb}{\propleftmargin}%
+%% set lengths for this invocation of prop environment
+\settowidth{\@thislabelwidth}{\@leftnitembrace\nref{#2}\@rightnitembrace}%
+\addtolength{\proplabelwidth}{\@thislabelwidth}%
+\setlength{\propleftmargin}{\@thislabelwidth}%
+\addtolength{\propleftmargin}{\propitemsep}
+\addtolength{\propleftmargin}{#1}
+\begin{prop}
+%% write content to aux file (dummy for parity)
+\write\proprefauxfile{\relax} % 
+%% produce item
+\begin{prop}\refitem{#2}\contentref{#2}\end{prop}%
+%% return \proplabelwidth and \propleftmargin to old values
+\setlength{\proplabelwidth}{\@propstoragea}%
+\setlength{\propleftmargin}{\@propstorageb}}
+
+
+%%%% \pref command: for producing in-text labels via keys.
+
+\newcommand{\pref}[1]
+%% what to do if key is set to "named"
+	{\ifthenelsekeytype{#1}{\@leftnitembraceout\nref{#1}\@rightnitembraceout}{%
+%% what to do if key is set to "numbered"
+	\ifthenelse{\equal{\@primereport{#1}}{prime}}%
+	%% what to do if key is set to "prime"
+	{\@leftpitembraceout\nref{#1}\@rightpitembraceout}%
+	%% what to do if key is not "prime"
+	{\@leftpitembraceout\ref{#1}\@rightpitembraceout}}%
+%% what to do if key is undefined
+{??}}
+
+
+
